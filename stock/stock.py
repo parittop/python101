@@ -3,7 +3,7 @@ from tkinter import ttk
 from tkinter import messagebox
 from tkinter.ttk import Notebook
 
-
+import stockchecker
 
 import csv
 
@@ -20,12 +20,20 @@ def readdata():
 		fr = csv.reader(f)
 		#fw = csv.writer(f)
 		#print(type(fr))
+		#try: 
+		for i in treeview2.get_children():
+			treeview2.delete(i)
+		#except:
+		#	pass
 		for i,j,k in fr:
-			print('product: {} price: {:.2f} quantity: {}'.format(i,float(j),k))
+			#print('product: {} price: {:.2f} quantity: {}'.format(i,float(j),k))
+			tv_data = [i,j,k]
+			treeview2.insert('','end',values=tv_data)
 
 gui = Tk()
 gui.geometry('400x400+50+50')
-
+gui.title('My Python App')
+gui.state('zoomed')
 
 menubar = Menu(gui)
 
@@ -47,6 +55,27 @@ Fproduct = Frame(Tab)
 Fproductlist = Frame (Tab)
 Fstock = Frame(Tab)
 
+treeview1 = ttk.Treeview(Fproductlist, height=5)
+treeview1.pack(fill=BOTH,expand=1)
+ 
+treeview1.insert('','0','water',text='Water')
+treeview1.insert('','1','softdrink',text='Softdrink')
+treeview1.insert('','2','juice',text='juice') 
+
+treeview1.insert('water','0','aura', text='Aura')
+treeview1.insert('aura','end','sub-aura', text='Sub-Aura')
+treeview1.insert('softdrink','0','softdrink1',text='Softdrink1')
+
+ 
+collist = ['Product','Price']
+treeview2 = ttk.Treeview(Fproductlist, columns=collist, show='headings', height=10)
+treeview2.pack(fill=X)
+
+for col in collist:
+	treeview2.heading(col, text=col.title())
+
+#------------Insert data---------------
+ 
 iconpd = PhotoImage(file='p1.png')
 iconpl = PhotoImage(file='p2.png')
 iconst = PhotoImage(file='p3.png')
@@ -95,6 +124,32 @@ def addProduct(event=None):
 		ent_price.set('')
 		ent_quantity.set('')
 
+def getstock():
+	ptt = PTTValue.get()
+	scb = SCBValue.get()
+	#print(ptt,scb)
+	 
+	disp = []
+	if ptt=='1': 
+		stockname,stockprice = stockchecker.checkprice('PTT')
+		#print(stockname,stockprice)
+		#disp.append('Stock: '+stockname + ' Price: '+ stockprice)
+		r=[stockname,stockprice]
+		disp.append(r)
+	if scb=='1': 
+		stockname,stockprice = stockchecker.checkprice('SCB')
+		#print(stockname,stockprice)
+		#disp.append('Stock: '+stockname + ' Price: '+ stockprice)
+		r=[stockname,stockprice]
+		disp.append(r)
+	print(disp)
+
+	for i in treeview3.get_children():
+			treeview3.delete(i)
+	 
+	for i in disp:		 
+		treeview3.insert('','end',values=i)
+
 
 Ecode= ttk.Entry(Fproduct, textvariable=ent_code, font=('Angsana New', 16), width=30)
 Ecode.grid(row=0, column=1,padx=5,pady=5, sticky=W)
@@ -116,6 +171,42 @@ BaddProduct.grid(row=4, column=1,padx=5,pady=5,ipady=10, ipadx=50, sticky=W)
 Result = ttk.Label(Fproduct,textvariable=result, font=('Angsana New', 16), width=70)
 Result.grid(row=5, column=1,padx=5,pady=5,ipady=10)
 
+
+
 Ecode.focus()
 
+PTTValue = StringVar()
+SCBValue = StringVar()
+
+F2stock = LabelFrame(Fstock, text='Criteria', )
+F2stock.grid(row=0,column=0,sticky=(W,E))
+
+CB = ttk.Checkbutton(F2stock,text='PTT',variable=PTTValue)
+CB.grid(row=0,column=0)
+
+CB2 = ttk.Checkbutton(F2stock,text='SCB',variable=SCBValue)
+CB2.grid(row=1,column=0)
+
+Bstock = ttk.Button(F2stock,text='Get Price', command=getstock)
+Bstock.grid(row=2,column=0)
+
+stockcollist = ['Stock','Price']
+treeview3 = ttk.Treeview(Fstock, columns=stockcollist, show='headings', height=10)
+treeview3.grid(row=1,column=0)
+ 
+
+for col in stockcollist:
+	treeview3.heading(col, text=col.title())
+
+radio= StringVar()
+rb1 = ttk.Radiobutton(F2stock,text='PTT', variable=radio, value=1)
+rb1.grid(row=0,column=1)
+
+LB1 = LabelFrame(Fstock,text='Dropdown')
+LB1.grid(row=2,column=0)
+
+drop=['PTT','SCB','TMB','AOT']
+combo = ttk.Combobox(LB1, values=drop)
+combo.grid(row=0,column=0)
+combo.set('SCB')
 gui.mainloop()
